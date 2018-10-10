@@ -49,12 +49,10 @@
 </template>
 <script>
 	import replyList from './reply-list.vue';
-	import msgInput from './sub/msg-input.vue';
 	import dateFormat from '../lib/data-format.js';
 	export default {
 		components:{
-			replyList,
-			msgInput
+			replyList
 		},
 		props:['type','id','commentids'],
 		data(){
@@ -123,8 +121,6 @@
 				}).then((response)=>{
 					if (response.data.success) {
 						this.list.splice(index,1);
-					} else {
-						this.$store.commit('setFlashMsg','删除评论失败');
 					}
 				}).catch(e=>{
 					this.$store.commit('setFlashMsg',e.message);
@@ -164,8 +160,6 @@
 				}).then((response)=>{
 					if (response.data.success) {
 						this.list=response.data.data;
-					} else {
-						this.$store.commit('setFlashMsg','评论获取失败');
 					}
 				}).catch(e=>{
 					this.$store.commit('setFlashMsg',e.message);

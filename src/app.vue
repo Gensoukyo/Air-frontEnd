@@ -2,37 +2,50 @@
     <div class="inner">
         <div class="wrapper">
             <header class="header">
-                <router-link to="/" class="header-logo"><img src="./assets/img/logo.png" alt="网站logo"></router-link>
+                <router-link to="/" class="header-logo">
+                	<img src="./assets/img/logo.png" alt="网站logo"></router-link>
                 <ul v-show="navVisibility" class="header-list">
                     <li>
-                    	<a href="#song"><img src="./assets/svgFont/recommend.svg" alt="推荐">推荐</a>
+                    	<a href="/#song">
+                    		<img src="./assets/svgFont/recommend.svg" alt="推荐">推荐</a>
                     </li>
                     <li>
-                    	<a href="#playlist"><img class="bigger-fix" src="./assets/svgFont/playlist.svg" alt="歌单">歌单</a>
+                    	<a href="/#playlist">
+                    		<img class="bigger-fix" src="./assets/svgFont/playlist.svg" alt="歌单">歌单</a>
                     </li>
                     <li @click="setLogOverlay()">
-                        <router-link to="/user"><img src="./assets/svgFont/like.svg" alt="我的">我的</router-link>
+                        <router-link to="/user">
+                        	<img src="./assets/svgFont/like.svg" alt="我的">我的</router-link>
                     </li>
-                    <li @click="navVisibility=!navVisibility" style="cursor: pointer;">
+                    <li class="cursor"
+                    	@click="navVisibility=!navVisibility">
                         <img src="./assets/svgFont/search.svg" alt="搜索">搜索
                     </li>
                 </ul>
                 <div v-show="!navVisibility&&searchBarVisiable" class="header-search">
                     <search-bar @hiddenbar="hiddenBar()"></search-bar>
-                    <span class="header-search-back" @click="hiddenBar()">取消</span>
+                    <span class="header-search-back"
+                    	@click="hiddenBar()">取消</span>
                 </div>
                 <div v-if="!$store.state.auth" class="header-log">
-                	<span @click="setLogOverlay()">登录</span>&nbsp;|&nbsp;<span @click="prepareRegister()">注册</span>
+                	<span class="cursor"
+                		@click="setLogOverlay()">登录</span>&nbsp;|&nbsp;
+                	<span class="cursor"
+                		@click="prepareRegister()">注册</span>
                 </div>
                 <div v-else class="header-log">
-                	<router-link to="/user"><img class="header-log-avatar" :src="userInfo.avatar" alt="头像"></router-link>
-                	<span class="header-log-quit" @click="logOut()">退出</span>
+                	<router-link to="/user">
+                		<img class="header-log-avatar"
+                			:src="userInfo.avatar" alt="头像"></router-link>
+                	<span class="header-log-quit cursor"
+                		@click="logOut()">退出</span>
                 </div>
             </header>
         </div>
         <log-popup v-if="$store.state.overlayVisibility"></log-popup>
         <router-view class="content content-begin" name="play"></router-view>
         <router-view class="content"></router-view>
+        <flash-msg></flash-msg>
         <footer class="footer">
             <p>Created by Gensoukyo!</p>
         </footer>
@@ -40,13 +53,13 @@
 </template>
 <script>
 	import searchBar from './components/search-bar.vue'
-	import logUser from './components/log-user.vue'
 	import logPopup from './components/log-popup.vue'
+	import flashMsg from './components/flash-msg.vue'
 	export default {
 	    components: {
 	        searchBar,
-	        logUser,
-	        logPopup
+	        logPopup,
+	        flashMsg
 	    },
 	    data() {
 	        return {
@@ -238,6 +251,10 @@
 	    padding: 15px 0;
 	    text-align: center;
 	    background-color: rgba(250, 250, 250, 0.93);
+	}
+
+	.cursor{
+		cursor: pointer;
 	}
 
 	.bigger-fix{

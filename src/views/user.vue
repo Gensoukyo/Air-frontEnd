@@ -260,6 +260,7 @@
 	.width-per40{width: 40%}
 	.profile{
 		margin-top: $header_height;
+		min-height: 587px;
 
 		&-header{
 			height: $bg_image_height;
@@ -376,8 +377,8 @@
 				margin: 0 15px;
 			}
 			&-content{
-				text-indent: 55px;
-			    padding: 10px 0;
+				text-indent: 65px;
+			    padding: 20px 0;
 			}
 		}
 	}
