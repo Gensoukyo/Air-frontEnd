@@ -1,16 +1,16 @@
 <template>
     <div class="search">
     	<div class="search-bar">
-    		<input class="search-bar-input" type="text" name="search" placeholder="用户/音乐/专辑/歌单" v-model="keyword" @keyup.enter="getSearch()" @blur="clearState()" @focus="showState()">
+    		<input class="search-bar-input" type="text" name="search" placeholder="用户/音乐/专辑/歌单" v-model="keyword" @keyup.enter="getSearch()" @blur="clearState($event)" @focus="showState()">
     		<img class="search-bar-icon" src="../assets/svgFont/search.svg" alt="搜索" @click="getSearch()">
     	</div>
-        <div v-show="resultShow" class="search-result">
+        <div v-show="resultShow" class="search-result" id="search-result" @click="hiddenBar()">
         	<div v-show="users.length" class="search-part">
         	    <span class="search-part-type">用户</span>
         	    <ul class="search-part-list">
         	        <li v-for="user in users">
         	        	<router-link class="search-part-link"
-        	        		:to="{ path: 'user', query: { uid: user.uid }}">{{user.username}}</router-link>
+        	        		:to="{ path: '/user', query: { id: user.uid }}">{{user.username}}</router-link>
         	        </li>
         	    </ul>
         	</div>
@@ -19,7 +19,7 @@
         	    <ul class="search-part-list">
         	        <li v-for="song in songs">
         	        	<router-link class="search-part-link"
-        	        		:to="{ path: 'play', params: { type: 'song' }, query: { sid: song.sid }}">{{song.name}} - {{song.artist}}</router-link>
+        	        		:to="{ path: '/song', query: { id: song.sid }}">{{song.name}} - {{song.artist}}</router-link>
         	        </li>
         	    </ul>
         	</div>
@@ -28,7 +28,7 @@
         	    <ul class="search-part-list">
         	        <li v-for="album in albums">
         	        	<router-link class="search-part-link"
-        	        		:to="{ path: 'play', params: { type: 'album' }, query: { aid: album.aid }}">{{album.name}} - {{album.artist}}</router-link>
+        	        		:to="{ path: '/album', query: { id: album.aid }}">{{album.name}} - {{album.artist}}</router-link>
         	        </li>
         	    </ul>
         	</div>
@@ -37,7 +37,7 @@
         	    <ul class="search-part-list">
         	        <li v-for="playlist in playlists">
         	        	<router-link class="search-part-link"
-        	        		:to="{ path: 'play', params: { type: 'playlist' }, query: { pid: playlist.pid }}">{{playlist.name}} - {{playlist.author}}</router-link>
+        	        		:to="{ path: '/playlist', query: { id: playlist.pid }}">{{playlist.name}} - {{playlist.author}}</router-link>
         	        </li>
         	    </ul>
         	</div>
@@ -60,9 +60,9 @@
 		},
 		methods:{
 			getSearch(){
-				if (!this.keyword) {
+				if (!this.keyword||/ +/.test(this.keyword)) {
 					[this.users,this.songs,this.albums,this.playlists]=[[],[],[],[]];
-					return this.clearState();
+					return this.resultShow=false;
 				}
 				this.axios.get('/api/search',{
 					params:{ keyword: this.keyword}
@@ -70,26 +70,32 @@
 					let result=response.data;
 					if (result.success) {
 						let data=result.data;
-						let _this=this;
 						this.users=data.user;
 						this.songs=data.song;
 						this.albums=data.album;
 						this.playlists=data.playlist;
 						this.$nextTick(()=>{
-							_this.resultShow=data.user+data.song+data.album+data.playlist
+							this.resultShow=data.user+data.song+data.album+data.playlist
 								?true
 								:false;
 						});
 					}
 				}).catch(e=>console.log(e));
 			},
-			clearState(){
-				this.resultShow=false;
+			clearState(evt){
+				let result=document.getElementById('search-result');
+				this.resultShow=result.contains(evt.relatedTarget)
+					?true
+					:false;
 			},
 			showState(){
 				if (this.keyword) {
 					this.resultShow=true;
 				}
+			},
+			hiddenBar(){
+				this.resultShow=!this.resultShow
+				this.$emit('hiddenbar');
 			}
 		},
 		watch:{
@@ -124,6 +130,9 @@
 					border:none;
 					outline: 0;
 				}
+				&::-ms-clear{
+	                display: none;
+	            }
 			}
 
 			&-icon{

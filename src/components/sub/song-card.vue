@@ -2,10 +2,10 @@
 	<div class="card">
 		<img class="card-cover" :src="song.image+'?param=200y200'" :alt="song.name">
 		<div class="card-action">
-			<router-link class="card-action-play" :to="{ path: 'play', params: { type: 'song' }, query: { sid: song.sid }}"></router-link>
-			<span class="card-action-add" @click="addToPlayList()"> + </span>
+			<router-link class="card-action-play" :to="{ path: '/song', query: { id: song.sid }}"></router-link>
+			<span class="card-action-add" @click="setNextToPlay()"> + </span>
 		</div>
-		<router-link class="card-info card-info-name" :to="{ path: 'play', params: { type: 'song' }, query: { sid: song.sid }}">
+		<router-link class="card-info card-info-name" :to="{ path: '/song', query: { id: song.sid }}">
 			{{song.name}}
 		</router-link>
 		<span class="card-info card-info-artist">{{song.artist}}</span>
@@ -16,10 +16,10 @@
 	export default {
 		props:['song'],
 		methods:{
-			addToPlayList(){
-				this.$store.commit('updateCurrentPlayList',{
+			setNextToPlay(){
+				this.$store.commit('setCurrentPlayList',{
 					method: 'add',
-					item: this.song
+					items: [this.song]
 				})
 			}
 		}
@@ -77,7 +77,7 @@
 	        	cursor: pointer;
 
 	        	&:active{
-	        		transform: scale(1.5)
+	        		transform: scale(1.5);
 	        	}
 	        }
         }

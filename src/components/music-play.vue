@@ -2,16 +2,29 @@
 	<div class="play-wrapper">
 		<div class="display">
 			<div class="display-info">
-				<div class="display-info-name">
-					<a :href="songLink">{{list[currentIndex].name}}</a>
-				</div>
-				<div>
-					<span>{{list[currentIndex].artist}}</span> - <a :href="albumLink">{{list[currentIndex].albumName}}</a>
+				<div >
+					<div class="display-info-name">
+						<span>{{ translateType() }}：</span><router-link :to="nameLink">{{globalDetail.name}}</router-link>
+					</div>
+					<div>
+						<span>{{globalDetail.type!=='playlist'?'歌手：':'创建者：'}}</span>
+						{{globalDetail.artistOrPublisherOrAuthor}}
+					</div>
+					<div>
+						<span v-if="globalDetail.type!=='album'">
+							<span v-if="globalDetail.type==='playlist'">标签：{{globalDetail.albumNameOrPubDateOrTag}}</span>
+							<span v-else>所属专辑：<router-link class="display-info-link" :to="albumLink">{{globalDetail.albumNameOrPubDateOrTag}}</router-link></span>
+						</span>
+						<span v-else>
+							<span>发行日期：</span>
+							<span>{{globalDetail.albumNameOrPubDateOrTag}}</span>
+						</span>
+					</div>
 				</div>
 			</div>
 			<div :class="{'player-bar-content':!navVisibility}">
 				<div v-show="maskLayerVisibility" class="mask-layer">
-					<img :src="list[currentIndex].image" alt="">
+					<img class="mask-layer-cover" :src="currentSong.image" alt="封面">
 				</div>
 				<iframe id="music-frame" frameborder="no" border="0" marginwidth="0" marginheight="0" width="100%" height=86 :src="outChain">
 				</iframe>
@@ -49,8 +62,8 @@
 				<ul v-show="playListVisibility" class="display-list">
 					<li v-for="(song,index) in list">
 						<span
-							:class="['display-list-name',{'display-list-current':index===currentIndex}]"
-							@click="setCurrentSong(index)">{{song.name}}</span>
+							:class="['display-list-name',{'display-list-current':song.sid===currentSong.sid}]"
+							@click="setCurrentSong(song)">{{song.name}}</span>
 						<span class="display-list-artist">{{song.artist}}</span>
 						<img class="display-list-delete"
 							@click="removeSong(index)"
@@ -60,7 +73,7 @@
 			</div>
 		</div>
 		<div class="play-cover">
-			<img :src="list[currentIndex].image" alt="">
+			<img class="play-cover-img" :src="globalDetail.image" alt="封面">
 		</div>
 	</div>
 </template>
@@ -68,7 +81,6 @@
 	export default {
 		data(){
 			return {
-				currentIndex:0,
 				playListVisibility: false,
 				likeTheSong:false,
 				playModel: 'one',
@@ -79,62 +91,102 @@
 			list(){
 				return this.$store.state.currentPlayList;
 			},
-			outChain(){
-				return '//music.163.com/outchain/player?type=2&id='+this.list[this.currentIndex].sid+'&auto=1&height=66';
+			currentSong(){
+				return this.$store.state.currentSong;
 			},
-			songLink(){
-				return '/play?sid='+this.list[this.currentIndex].sid;
-			},
-			albumLink(){
-				return '/play?pid='+this.list[this.currentIndex].albumId;
-			},
-			maskLayerVisibility(){
-				return this.playModel==='cycle'||this.playModel==='random';
+			globalDetail(){
+				return this.$store.state.globalDetail;
 			},
 			navVisibility(){
 				return this.$store.state.navVisibility;
+			},
+			outChain(){
+				return '//music.163.com/outchain/player?type=2&id='+this.currentSong.sid+'&auto=1&height=66';
+			},
+			nameLink(){
+				return '/'+this.globalDetail.type+'?id='+this.globalDetail.id;
+			},
+			albumLink(){
+				return 'album?id='+this.currentSong.albumId;
+			},
+			maskLayerVisibility(){
+				return this.playModel==='cycle'||this.playModel==='random';
 			}
 		},
+		watch:{
+			currentSong(val){
+				this.$store.commit('setGlobalDetail',{
+					type: 'song',
+					id: val.sid,
+					name: val.name,
+					image: val.image,
+					artistOrPublisherOrAuthor: val.artist,
+					albumNameOrPubDateOrTag: val.albumName
+				});
+			},
+			navVisibility(val){
+				this.playListVisibility=val;
+			}
+		},
+		beforeDestroy(){
+			clearTimeout(this.timer);
+		},
 		methods:{
-			setCurrentSong(index){
-				this.currentIndex=index;
-				if(this.playModel!=='one'){
-					this.setListCirculation(false);
-				}
+			setCurrentSong(song){
+				this.$store.commit('setCurrentSong',song);
 			},
 			preSong(){
-				this.currentIndex=this.currentIndex===0
-					?this.list.length-1
-					:--this.currentIndex;
-				if(this.playModel!=='one'){
-					this.setListCirculation(false);
-				}
+				let currentIndex=this.list.findIndex(s=>s.sid===this.currentSong.sid);
+				this.setCurrentSong(currentIndex
+					?this.list[currentIndex-1]
+					:this.list[this.list.length-1]
+				);
 			},
 			nextSong(){
-				this.currentIndex=this.currentIndex===this.list.length-1
-					?0
-					:++this.currentIndex;
-				if(this.playModel!=='one'){
-					this.setListCirculation(false);
-				}
+				let currentIndex=this.list.findIndex(s=>s.sid===this.currentSong.sid);
+				this.setCurrentSong(currentIndex!==this.list.length-1
+					?this.list[currentIndex+1]
+					:this.list[0]
+				);
 			},
 			likeSong(){
 				if (this.$store.state.auth) {
-					this.likeTheSong=!this.likeTheSong;
-					//修改user的state
+					let token=localStorage.getItem('token');
+					let target={
+						ttype: 'song',
+						tid: this.currentSong.sid
+					}
+					//根据当前歌曲是否被收藏发送不同请求
+					let promise=this.likeTheSong
+						?this.axios.delete('/api/user/collect',{
+							data:{ target },
+							headers: {'x-access-token': token}
+						})
+						:this.axios.post('/api/user/collect',{ target },{
+							headers: {'x-access-token': token}
+						})
+					promise.then((response)=>{
+						if (response.data.success) {
+							this.likeTheSong=!this.likeTheSong;
+						} else {
+							this.$store.commit('setFlashMsg','操作失败');
+						}
+					}).catch(e=>{
+						this.$store.commit('setFlashMsg',e.message);
+					});
 				}else{
 					this.$store.commit('setLogOverlay');
 				}
 			},
 			removeSong(index){
 				if (this.list.length>1) {
-					this.$store.commit('updateCurrentPlayList',{
+					if (this.list[index].sid===this.currentSong.sid) {
+						this.nextSong()
+					}
+					this.$store.commit('setCurrentPlayList',{
 						method: 'remove',
 						index: index
 					});
-					index<this.currentIndex
-						?this.preSong()
-						:null;
 				}
 			},
 			switchModel(model){
@@ -152,17 +204,19 @@
 				}
 				function circulate() {
 					this.timer=setTimeout(()=>{
-						this.currentIndex=this.currentIndex===this.list.length-1
-							?0
-							:++this.currentIndex;
+						let currentIndex=this.list.findIndex(s=>s.sid===this.currentSong.sid);
+						this.$store.commit('setCurrentSong',currentIndex!==this.list.length-1
+							?this.list[currentIndex-1]
+							:this.list[0]);
 						circulate.bind(this)();
-					},this.list[this.currentIndex].duration);
+					},this.currentSong.duration);
 				}
 				circulate.bind(this)();
+			},
+			translateType(){
+				let typeMap=new Map([['song','单曲'],['album','专辑'],['playlist','歌单']]);
+				return typeMap.get(this.globalDetail.type);
 			}
-		},
-		beforeDestroy(){
-			clearTimeout(this.timer);
 		}
 	}
 </script>
@@ -181,9 +235,9 @@
 		padding: 10px 0;
 		text-align: center;
 
-		img{
-			width: 100%;
-		    height: auto;
+		&-img{
+			width: 72%;
+		    border-radius: 1%;
 		}
 	}
 	.mask-layer{
@@ -195,7 +249,7 @@
 		background-color: rgba(255,255,255,.93);
 		box-shadow: 0 0 10px #ccc;
 
-		img{
+		&-cover{
 			width: 66px;
 			height: 100%;
 			border-top-left-radius: 2px;
@@ -212,7 +266,12 @@
 			font-size: 15px;
 
 			&-name{
-				font-size: 25px;
+				font-size: 20px;
+				color: #666;
+			}
+
+			&-link:hover{
+				text-decoration: underline;
 			}
 		}
 
@@ -252,7 +311,7 @@
 				position: absolute;
 				line-height: $list_lineheight;
 				overflow:hidden;
-				white-space:nowrap;/*不显示的地方用省略号...代替*/
+				white-space:nowrap; /*不显示的地方用省略号...代替*/
 				text-overflow:ellipsis;
 			}
 			&-name{

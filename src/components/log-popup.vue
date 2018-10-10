@@ -61,7 +61,6 @@
     		setLogOverlay(){
     			this.$store.commit('setLogOverlay');
     			this.$store.commit('setOptionForReg',false);
-    			console.log(document.getElementById('time'));
     		},
 	        setCaptcha(){
 	        	this.axios.get('/api/user/verify').then((response)=>{
@@ -82,7 +81,7 @@
         					case 'password':
         						_this.passwordTip=result.info.message;
         						break;
-        					default :_this.$store.commit('newErrorMsg',result.info.message);
+        					default :_this.$store.commit('newFlashMsg',result.info.message);
         				}
         			}
         		})
@@ -107,7 +106,7 @@
 	        				case 'vcode':
 	        					_this.vcodeTip=result.info.message;
 	        					break;
-	        				default :_this.$store.commit('newErrorMsg',result.info.message);
+	        				default :_this.$store.commit('newFlashMsg',result.info.message);
 	        			}
 	        		}
 	        	}).catch(e=>console.log(e));
@@ -174,6 +173,7 @@
 			height: 40px;
 			line-height: 14px;
 			padding: 12px 10px;
+			outline: 0 none;
 			border: 1px solid #ccc;
 			border-radius: 3px;
 		}
@@ -181,11 +181,11 @@
 		&-btn{
 			cursor: pointer;
 			color: #fff;
-			background-color: #59b36a;
+			background-color: #00a7de;
 			font-size: 16px;
 
 			&:hover{
-				background-color: #006741;
+				background-color: #00bee7;
 			}
 		}
 
@@ -213,6 +213,9 @@
 			height: 40px;
 			float: left;
 			padding: 12px 10px;
+			border: 1px solid #ccc;
+			outline: 0 none;
+			border-radius: 3px;
 		}
 
 		&-captcha{

@@ -5,20 +5,36 @@ const Routers = [
             title: 'Air-云之彼端'
         },
         components: {
-            default:null,
-            play: (resolve) => require(['./components/music-play.vue'], resolve),
-            main: (resolve) => require(['./views/main.vue'], resolve)
+            default: (resolve) => require(['./views/main.vue'], resolve),
+            play: (resolve) => require(['./components/music-play.vue'], resolve)
         }
     },
     {
-        path: '/play',
-        component: (resolve) => require(['./views/enjoy.vue'], resolve),
-        props: true
+        path: '/:type(song|playlist|album)',
+        meta: {
+            title: 'Air-云之彼端'
+        },
+        components: {
+            default: (resolve) => require(['./views/detail.vue'], resolve),
+            play: (resolve) => require(['./components/music-play.vue'], resolve)
+        },
+        props: {
+            default: (route)=>({
+                type: route.params.type,
+                id: route.query.id
+            }),
+            play: false
+        }
     },
     {
         path: '/user',
-        name: 'user',
-        component: (resolve) => require(['./views/user.vue'], resolve)
+        meta: {
+            title: 'Air-云之彼端'
+        },
+        component: (resolve) => require(['./views/user.vue'], resolve),
+        props: (route)=>({
+            id: route.query.id
+        })
     },
     {
         path: '/message',
