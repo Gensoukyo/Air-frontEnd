@@ -16,15 +16,16 @@ const RouterConfig = {
     routes: Routers
 };
 const router = new VueRouter(RouterConfig);
-
 const store = new Vuex.Store(StoreConfig);
+
+const TITLE='Air-云之彼端';
 
 //全局前置守卫
 router.beforeEach((to, from, next) => {
 	if (to.path==='/user'&&!store.state.auth) {
 		return next(false);
 	}
-    window.document.title = to.meta.title;
+    window.document.title = to.meta.title||TITLE;
     next();
 });
 //全局后置守卫

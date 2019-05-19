@@ -12,7 +12,8 @@ module.exports = merge(common, {
         compress: true,
         port: 3000,
         proxy: {
-          '/api': 'http://localhost:4000'
+          '/api': 'http://localhost:8080',
+          '/assets': 'http://localhost:8080'
         }
     }
 });

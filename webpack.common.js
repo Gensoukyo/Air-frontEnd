@@ -6,11 +6,15 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const devMode = process.env.NODE_ENV !== 'production'; 
 
 module.exports = {
-    entry: './src/air.js',
+    entry: {
+        main: './src/air.js',
+        vendors: [ 'vue', 'axios', 'vue-axios', 'vue-router', 'vuex' ]
+    },
     output: {
-        filename: devMode ? '[name].js' : '[name].[hash].js',
-        chunkFilename: devMode ? '[name].chunk.js' : '[name].chunk.[hash].js',
-        path: path.resolve(__dirname, 'dist')
+        filename: devMode ? 'js/[name].js' : 'js/[name].[hash].js',
+        chunkFilename: devMode ? 'js/[name].chunk.js' : 'js/[name].chunk.[hash].js',
+        path: path.resolve(__dirname, 'dist'),
+        publicPath: devMode ? '/' : 'https://sokyo.gitee.io/dist/'
     },
     module: {
         rules: [{
@@ -43,6 +47,7 @@ module.exports = {
                         loader: 'css-loader',
                         options: {
                             modules: false,
+                            minimize: true,
                             localIdentName: '[name]__[local]___[hash:base64:5]'
                         }
                     },
@@ -55,7 +60,8 @@ module.exports = {
                     loader: 'url-loader',
                     options: {
                         limit: 1024,
-                        filename: 'assets/img/[name].[ext]'
+                        name: 'img/[name].[hash:7].[ext]',
+                        publicPath: devMode ? '/' : 'https://sokyo.gitee.io/dist/'
                     }
                 }
             }

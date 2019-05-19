@@ -16,6 +16,9 @@
 			}
 		},
 		watch:{
+			replyIds(){
+				this.fetchData(1);
+			},
 			newReply(val){
 				this.handSend(val);
 			}

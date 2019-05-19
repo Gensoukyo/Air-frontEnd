@@ -1,7 +1,7 @@
 <template>
 	<div class="card">
 		<router-link :to="{ path: '/'+listType, query: { id: item.aid||item.pid }}">
-			<img class="card-cover" :src="setImgSourseSize(item.image)" :alt="item.name">
+			<img class="card-cover" :src="resizeImg(item.image)" :alt="item.name">
 		</router-link>
 		<router-link class="card-info card-info-name" :to="{ path: '/'+listType, query: { id: item.aid||item.pid }}">
 			{{item.name}}
@@ -22,8 +22,8 @@
 			}
 		},
 		methods:{
-			setImgSourseSize(url,size=200){
-				return url+'?param='+size+'y'+size;
+			resizeImg(url,size=200){
+				return (url||'//p3.music.126.net/OgPzb1xGmGp0xDzEbcF-MA==/3285340745280611.jpg')+'?param='+size+'y'+size;
 			}
 		}
 	}
